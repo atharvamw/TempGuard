@@ -5,9 +5,8 @@ WIFI_SSID = "YOUR_WIFI_SSID"
 WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"
 
 # Backend Telemetry API Settings
-# Your computer's current Wi-Fi LAN IP is 192.168.0.145
-# Note: Start Next.js with `pnpm dev -H 0.0.0.0` so other LAN devices can reach it
-API_URL = "http://192.168.0.145:3000/api/telemetry"
+# Your computer's current Wi-Fi LAN IP on G62 is 10.188.232.234
+API_URL = "http://10.188.232.234:3000/api/telemetry"
 
 # Device Identification & Security
 DEVICE_ID = "thermoguard-01"
