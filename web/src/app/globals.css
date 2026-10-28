@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Warm, low-glare neutral background (Claude / Linear aesthetic) */
+  --background: #fbfbf9;
+  --foreground: #1c1c1a;
+
+  --card: #ffffff;
+  --card-foreground: #1c1c1a;
+
+  --popover: #ffffff;
+  --popover-foreground: #1c1c1a;
+
+  /* Restrained accent color: subtle emerald/teal for IoT status */
+  --primary: #107c6f;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f3f3f0;
+  --secondary-foreground: #2d2d2a;
+
+  --muted: #f0f0ec;
+  --muted-foreground: #706f6a;
+
+  --accent: #eef5f3;
+  --accent-foreground: #0d5e54;
+
+  --destructive: #d9383a;
+  --destructive-foreground: #ffffff;
+
+  --border: #e6e6e0;
+  --input: #e6e6e0;
+  --ring: #107c6f;
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: #121211;
+  --foreground: #ededeb;
+
+  --card: #181817;
+  --card-foreground: #ededeb;
+
+  --popover: #181817;
+  --popover-foreground: #ededeb;
+
+  --primary: #22a090;
+  --primary-foreground: #0a211e;
+
+  --secondary: #242422;
+  --secondary-foreground: #ededeb;
+
+  --muted: #222220;
+  --muted-foreground: #9a9994;
+
+  --accent: #192724;
+  --accent-foreground: #34d399;
+
+  --destructive: #882426;
+  --destructive-foreground: #ffffff;
+
+  --border: #2a2a28;
+  --input: #2a2a28;
+  --ring: #22a090;
+}
+
+body {
+  color: var(--foreground);
+  background-color: var(--background);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
