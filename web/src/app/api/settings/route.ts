@@ -7,7 +7,7 @@ import { ApiSuccessResponse } from "@/types/api";
 export const dynamic = "force-dynamic";
 
 const DEFAULT_MIN_TEMP = 18;
-const DEFAULT_MAX_TEMP = 28;
+const DEFAULT_MAX_TEMP = 38;
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);

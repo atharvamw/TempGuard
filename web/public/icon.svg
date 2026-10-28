@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f1717" />
+      <stop offset="50%" stop-color="#090d0e" />
+      <stop offset="100%" stop-color="#040607" />
+    </linearGradient>
+
+    <!-- Shield Border Gradient -->
+    <linearGradient id="shieldBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.9" />
+      <stop offset="50%" stop-color="#059669" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0.8" />
+    </linearGradient>
+
+    <!-- Shield Ambient Fill Gradient -->
+    <linearGradient id="shieldFill" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#064e3b" stop-opacity="0.03" />
+    </linearGradient>
+
+    <!-- Mercury Core Gradient -->
+    <linearGradient id="mercuryGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="40%" stop-color="#10b981" />
+      <stop offset="85%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#6ee7b7" />
+    </linearGradient>
+
+    <!-- Bulb Glow Filter -->
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <!-- Soft Glow Filter -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Base App Tile with Squircle -->
+  <rect width="512" height="512" rx="116" fill="url(#bgGrad)" />
+  <rect width="510" height="510" x="1" y="1" rx="115" fill="none" stroke="url(#shieldBorder)" stroke-width="2.5" stroke-opacity="0.4" />
+
+  <!-- Shield Protective Contour -->
+  <path
+    d="M 256 68 
+       C 334 68 392 94 402 144
+       C 402 248 356 364 256 428
+       C 156 364 110 248 110 144
+       C 120 94 178 68 256 68 Z"
+    fill="url(#shieldFill)"
+    stroke="url(#shieldBorder)"
+    stroke-width="5"
+    stroke-linejoin="round"
+  />
+
+  <!-- Inner Subtle Accent Shield Line -->
+  <path
+    d="M 256 94 
+       C 318 94 366 116 376 156
+       C 376 238 338 334 256 388
+       C 174 334 136 238 136 156
+       C 146 116 194 94 256 94 Z"
+    fill="none"
+    stroke="#10b981"
+    stroke-width="1.5"
+    stroke-opacity="0.25"
+    stroke-dasharray="6 4"
+  />
+
+  <!-- Wireless / IoT Radio Signal Arcs (Top Right) -->
+  <path
+    d="M 318 132 A 44 44 0 0 1 354 168"
+    fill="none"
+    stroke="#34d399"
+    stroke-width="4.5"
+    stroke-linecap="round"
+    stroke-opacity="0.85"
+    filter="url(#softGlow)"
+  />
+  <path
+    d="M 334 116 A 66 66 0 0 1 388 170"
+    fill="none"
+    stroke="#10b981"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-opacity="0.5"
+  />
+
+  <!-- Thermometer Glass Housing Outline -->
+  <path
+    d="M 240 160
+       A 16 16 0 0 1 272 160
+       L 272 284.5
+       A 42 42 0 1 1 240 284.5
+       Z"
+    fill="#04120e"
+    fill-opacity="0.75"
+    stroke="#34d399"
+    stroke-width="4"
+    stroke-linejoin="round"
+  />
+
+  <!-- Thermometer Graduation Tick Marks (Right side) -->
+  <line x1="272" y1="184" x2="284" y2="184" stroke="#6ee7b7" stroke-width="3" stroke-linecap="round" stroke-opacity="0.8" />
+  <line x1="272" y1="208" x2="280" y2="208" stroke="#6ee7b7" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.5" />
+  <line x1="272" y1="232" x2="284" y2="232" stroke="#6ee7b7" stroke-width="3" stroke-linecap="round" stroke-opacity="0.8" />
+  <line x1="272" y1="256" x2="280" y2="256" stroke="#6ee7b7" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.5" />
+
+  <!-- Thermometer Mercury Fluid Column -->
+  <path
+    d="M 248 198
+       A 8 8 0 0 1 264 198
+       L 264 290
+       A 30 30 0 1 1 248 290
+       Z"
+    fill="url(#mercuryGrad)"
+    filter="url(#glow)"
+  />
+
+  <!-- Mercury Core Inner Highlight -->
+  <ellipse cx="250" cy="308" rx="8" ry="14" fill="#ffffff" fill-opacity="0.45" transform="rotate(-25 250 308)" />
+  <line x1="252" y1="202" x2="252" y2="280" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-opacity="0.35" />
+
+  <!-- Bottom Pulse / Core Spark Dot -->
+  <circle cx="256" cy="452" r="3" fill="#10b981" filter="url(#softGlow)" />
+</svg>

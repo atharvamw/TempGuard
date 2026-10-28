@@ -81,7 +81,7 @@ export function TemperatureOverview({
 
   // Threshold gauge calculation (percentage for horizontal bar)
   const minThresh = settings?.minTemperatureC ?? 18;
-  const maxThresh = settings?.maxTemperatureC ?? 28;
+  const maxThresh = settings?.maxTemperatureC ?? 38;
   const currentTemp = reading.temperatureC;
 
   // Scale gauge between (min - 5) and (max + 5)

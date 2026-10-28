@@ -11,11 +11,11 @@ interface ThresholdSettingsProps {
 
 export function ThresholdSettings({
   initialMin = 18,
-  initialMax = 28,
+  initialMax = 38,
   onSave,
 }: ThresholdSettingsProps) {
   const [minVal, setMinVal] = useState<string>(initialMin?.toString() ?? "18");
-  const [maxVal, setMaxVal] = useState<string>(initialMax?.toString() ?? "28");
+  const [maxVal, setMaxVal] = useState<string>(initialMax?.toString() ?? "38");
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -128,7 +128,7 @@ export function ThresholdSettings({
                 value={maxVal}
                 onChange={(e) => setMaxVal(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/30"
-                placeholder="e.g. 28.0"
+                placeholder="e.g. 38.0"
                 required
               />
               <p className="text-[11px] text-muted-foreground mt-1">

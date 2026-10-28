@@ -28,7 +28,7 @@ describe("/api/settings", () => {
 
       expect(res.status).toBe(200);
       expect(json.data.minTemperatureC).toBe(18);
-      expect(json.data.maxTemperatureC).toBe(28);
+      expect(json.data.maxTemperatureC).toBe(38);
       expect(json.data.isDefault).toBe(true);
     });
 

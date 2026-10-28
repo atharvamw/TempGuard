@@ -7,6 +7,7 @@ import { TemperatureStats } from "./TemperatureStats";
 import { TemperatureChart } from "./TemperatureChart";
 import { ThresholdSettings } from "./ThresholdSettings";
 import { StatusBadge } from "./StatusBadge";
+import { ThermoGuardLogo } from "./ThermoGuardLogo";
 import { AlertCircle, RefreshCw, Radio, CheckCircle2 } from "lucide-react";
 
 interface DashboardProps {
@@ -36,9 +37,7 @@ export function Dashboard({ deviceId = "thermoguard-01" }: DashboardProps) {
       {/* Top Navigation / App Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-6">
         <div className="flex items-center gap-3.5">
-          <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary flex items-center justify-center font-bold text-xl border border-primary/30 shadow-xs">
-            θ
-          </div>
+          <ThermoGuardLogo size={46} />
           <div>
             <div className="flex items-center gap-2.5">
               <h1 className="text-xl font-bold tracking-tight text-foreground">

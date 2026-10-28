@@ -4,6 +4,15 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "ThermoGuard — Smart IoT Temperature Monitor",
   description: "Lightweight, reliable IoT temperature monitoring dashboard for ESP32 and MongoDB.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export default function RootLayout({
