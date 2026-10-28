@@ -7,7 +7,7 @@ import { TemperatureStats } from "./TemperatureStats";
 import { TemperatureChart } from "./TemperatureChart";
 import { ThresholdSettings } from "./ThresholdSettings";
 import { StatusBadge } from "./StatusBadge";
-import { AlertCircle, RefreshCw, Wifi } from "lucide-react";
+import { AlertCircle, RefreshCw, Radio, CheckCircle2 } from "lucide-react";
 
 interface DashboardProps {
   deviceId?: string;
@@ -22,6 +22,7 @@ export function Dashboard({ deviceId = "thermoguard-01" }: DashboardProps) {
     isRefreshing,
     error,
     lastSuccessAt,
+    secondsSinceLastFetch,
     setRange,
     updateThresholds,
     refetch,
@@ -33,33 +34,34 @@ export function Dashboard({ deviceId = "thermoguard-01" }: DashboardProps) {
   return (
     <div className="min-h-screen flex flex-col justify-between p-4 sm:p-6 md:p-10 max-w-5xl mx-auto space-y-8">
       {/* Top Navigation / App Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-lg border border-primary/20">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-6">
+        <div className="flex items-center gap-3.5">
+          <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary flex items-center justify-center font-bold text-xl border border-primary/30 shadow-xs">
             θ
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-semibold tracking-tight text-foreground">
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl font-bold tracking-tight text-foreground">
                 ThermoGuard
               </h1>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-secondary text-muted-foreground border border-border/60">
                 {deviceId}
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Smart IoT Temperature Monitoring
+              Smart IoT Temperature Monitoring &bull; Cloud Dashboard
             </p>
           </div>
         </div>
 
-        {/* Header Right: Status and Manual Sync */}
-        <div className="flex items-center gap-3">
+        {/* Header Right: Status and Live Auto-Sync Pill */}
+        <div className="flex items-center gap-3 self-start sm:self-auto">
           <StatusBadge status={status} />
+          
           <button
             onClick={refetch}
             disabled={isRefreshing}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/80 bg-card text-xs font-medium text-foreground hover:bg-secondary/70 transition-colors shadow-2xs disabled:opacity-50 cursor-pointer"
             title="Poll for new temperature data now"
           >
             <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin text-primary" : ""}`} />
@@ -68,16 +70,16 @@ export function Dashboard({ deviceId = "thermoguard-01" }: DashboardProps) {
         </div>
       </header>
 
-      {/* Non-intrusive error banner (retains old data on temporary network glitch) */}
+      {/* Non-intrusive error notice (retains data during transient network drops) */}
       {error && (
-        <div className="p-3.5 rounded-lg border border-rose-200 bg-rose-50/80 dark:border-rose-900 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="p-4 rounded-xl border border-rose-200 bg-rose-50/80 dark:border-rose-900/60 dark:bg-rose-950/40 text-rose-950 dark:text-rose-200 text-xs flex items-center justify-between shadow-2xs">
+          <div className="flex items-center gap-2.5">
             <AlertCircle className="h-4 w-4 text-rose-500 shrink-0" />
             <span>{error}</span>
           </div>
           <button
             onClick={refetch}
-            className="text-xs font-semibold text-rose-700 dark:text-rose-300 hover:underline"
+            className="text-xs font-semibold text-rose-700 dark:text-rose-300 hover:underline cursor-pointer"
           >
             Retry
           </button>
@@ -87,14 +89,14 @@ export function Dashboard({ deviceId = "thermoguard-01" }: DashboardProps) {
       {/* Main Content Area */}
       {isLoading ? (
         <div className="space-y-6 animate-pulse">
-          <div className="h-48 rounded-xl bg-muted/60 border border-border" />
+          <div className="h-56 rounded-2xl bg-muted/50 border border-border/60" />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="h-24 rounded-xl bg-muted/50 border border-border" />
-            <div className="h-24 rounded-xl bg-muted/50 border border-border" />
-            <div className="h-24 rounded-xl bg-muted/50 border border-border" />
-            <div className="h-24 rounded-xl bg-muted/50 border border-border" />
+            <div className="h-28 rounded-2xl bg-muted/40 border border-border/60" />
+            <div className="h-28 rounded-2xl bg-muted/40 border border-border/60" />
+            <div className="h-28 rounded-2xl bg-muted/40 border border-border/60" />
+            <div className="h-28 rounded-2xl bg-muted/40 border border-border/60" />
           </div>
-          <div className="h-72 rounded-xl bg-muted/40 border border-border" />
+          <div className="h-80 rounded-2xl bg-muted/40 border border-border/60" />
         </div>
       ) : (
         <div className="space-y-6">
@@ -102,6 +104,7 @@ export function Dashboard({ deviceId = "thermoguard-01" }: DashboardProps) {
           <TemperatureOverview
             data={latest}
             isRefreshing={isRefreshing}
+            secondsSinceLastFetch={secondsSinceLastFetch}
             onRefresh={refetch}
           />
 
@@ -134,14 +137,17 @@ export function Dashboard({ deviceId = "thermoguard-01" }: DashboardProps) {
       )}
 
       {/* Footer */}
-      <footer className="pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+      <footer className="pt-6 border-t border-border/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
-          <Wifi className="h-3.5 w-3.5 text-primary" />
-          <span>Auto-refresh active (10s) with visibility awareness</span>
+          <Radio className="h-3.5 w-3.5 text-primary animate-pulse" />
+          <span>Live telemetry active &bull; Auto-syncing every 3s</span>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
           {lastSuccessAt && (
-            <span>Last synced: {lastSuccessAt.toLocaleTimeString()}</span>
+            <>
+              <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+              <span>Last synced {lastSuccessAt.toLocaleTimeString()}</span>
+            </>
           )}
         </div>
       </footer>

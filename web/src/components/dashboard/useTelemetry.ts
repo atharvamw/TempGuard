@@ -7,7 +7,8 @@ import {
   HistoryRange,
 } from "@/types/telemetry";
 
-const POLL_INTERVAL_MS = 10_000;
+// Fast polling interval: every 3 seconds for near-instant updates
+const POLL_INTERVAL_MS = 3_000;
 
 interface TelemetryState {
   latest: LatestReadingData | null;
@@ -17,6 +18,7 @@ interface TelemetryState {
   isRefreshing: boolean;
   error: string | null;
   lastSuccessAt: Date | null;
+  secondsSinceLastFetch: number;
 }
 
 export function useTelemetry(deviceId: string = "thermoguard-01") {
@@ -28,6 +30,7 @@ export function useTelemetry(deviceId: string = "thermoguard-01") {
     isRefreshing: false,
     error: null,
     lastSuccessAt: null,
+    secondsSinceLastFetch: 0,
   });
 
   const isRequestInFlight = useRef(false);
@@ -35,11 +38,10 @@ export function useTelemetry(deviceId: string = "thermoguard-01") {
   selectedRangeRef.current = state.selectedRange;
 
   /**
-   * Fetches the latest reading and history in parallel.
+   * Fetches latest reading and history in parallel with cache-busting.
    */
   const fetchData = useCallback(
     async (isBackgroundRefresh = false) => {
-      // Prevent overlapping requests
       if (isRequestInFlight.current) {
         return;
       }
@@ -49,41 +51,75 @@ export function useTelemetry(deviceId: string = "thermoguard-01") {
         setState((prev) => ({ ...prev, isRefreshing: true }));
       }
 
+      // 8-second timeout so slow networks never freeze the polling cycle
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
       try {
         const currentRange = selectedRangeRef.current;
+        const cacheBuster = Date.now();
+
         const [latestRes, historyRes] = await Promise.all([
-          fetch(`/api/telemetry/latest?deviceId=${encodeURIComponent(deviceId)}`, {
-            cache: "no-store",
-          }),
           fetch(
-            `/api/telemetry/history?deviceId=${encodeURIComponent(deviceId)}&range=${currentRange}`,
-            { cache: "no-store" }
+            `/api/telemetry/latest?deviceId=${encodeURIComponent(deviceId)}&_t=${cacheBuster}`,
+            {
+              cache: "no-store",
+              headers: { Pragma: "no-cache", "Cache-Control": "no-cache" },
+              signal: controller.signal,
+            }
+          ),
+          fetch(
+            `/api/telemetry/history?deviceId=${encodeURIComponent(deviceId)}&range=${currentRange}&_t=${cacheBuster}`,
+            {
+              cache: "no-store",
+              headers: { Pragma: "no-cache", "Cache-Control": "no-cache" },
+              signal: controller.signal,
+            }
           ),
         ]);
 
-        if (!latestRes.ok && !historyRes.ok) {
-          throw new Error("Failed to communicate with temperature telemetry service.");
+        clearTimeout(timeoutId);
+
+        let latestData = null;
+        let historyData = null;
+
+        if (latestRes.ok) {
+          const latestJson = await latestRes.json();
+          latestData = latestJson.data;
         }
 
-        const latestJson = latestRes.ok ? await latestRes.json() : null;
-        const historyJson = historyRes.ok ? await historyRes.json() : null;
+        if (historyRes.ok) {
+          const historyJson = await historyRes.json();
+          historyData = historyJson.data;
+        }
+
+        if (!latestRes.ok && !historyRes.ok) {
+          throw new Error("Unable to sync telemetry data right now.");
+        }
 
         setState((prev) => ({
           ...prev,
-          latest: latestJson ? latestJson.data : prev.latest,
-          history: historyJson ? historyJson.data : prev.history,
+          latest: latestData ?? prev.latest,
+          history: historyData ?? prev.history,
           isLoading: false,
           isRefreshing: false,
           error: null,
           lastSuccessAt: new Date(),
+          secondsSinceLastFetch: 0,
         }));
-      } catch (err) {
-        const errMsg = err instanceof Error ? err.message : "Temporary telemetry connection issue";
+      } catch (err: unknown) {
+        clearTimeout(timeoutId);
+        const errMsg =
+          err instanceof Error && err.name === "AbortError"
+            ? "Sync timed out"
+            : err instanceof Error
+            ? err.message
+            : "Temporary sync issue";
+
         setState((prev) => ({
           ...prev,
           isLoading: false,
           isRefreshing: false,
-          // Preserve previously fetched data and only display a non-intrusive error notice
           error: errMsg,
         }));
       } finally {
@@ -94,15 +130,16 @@ export function useTelemetry(deviceId: string = "thermoguard-01") {
   );
 
   /**
-   * Update time range for historical charts
+   * Switch chart time range
    */
   const setRange = useCallback(
     (range: HistoryRange) => {
       selectedRangeRef.current = range;
       setState((prev) => ({ ...prev, selectedRange: range, isRefreshing: true }));
-      // Fetch immediately for the new range
+
+      const cacheBuster = Date.now();
       fetch(
-        `/api/telemetry/history?deviceId=${encodeURIComponent(deviceId)}&range=${range}`,
+        `/api/telemetry/history?deviceId=${encodeURIComponent(deviceId)}&range=${range}&_t=${cacheBuster}`,
         { cache: "no-store" }
       )
         .then((res) => (res.ok ? res.json() : null))
@@ -123,7 +160,7 @@ export function useTelemetry(deviceId: string = "thermoguard-01") {
   );
 
   /**
-   * Updates threshold settings on the server
+   * Update device threshold settings
    */
   const updateThresholds = useCallback(
     async (minTemperatureC: number, maxTemperatureC: number) => {
@@ -136,10 +173,10 @@ export function useTelemetry(deviceId: string = "thermoguard-01") {
 
         const json = await res.json();
         if (!res.ok) {
-          throw new Error(json.error?.message || "Failed to update settings");
+          throw new Error(json.error?.message || "Failed to update thresholds");
         }
 
-        // Refresh latest to re-evaluate threshold violation
+        // Trigger immediate fetch to apply changes
         fetchData(true);
         return { success: true };
       } catch (err) {
@@ -150,7 +187,19 @@ export function useTelemetry(deviceId: string = "thermoguard-01") {
     [deviceId, fetchData]
   );
 
-  // Set up polling with document visibility awareness
+  // 1-second live ticker for smooth client timestamp counting
+  useEffect(() => {
+    const ticker = setInterval(() => {
+      setState((prev) => ({
+        ...prev,
+        secondsSinceLastFetch: prev.secondsSinceLastFetch + 1,
+      }));
+    }, 1000);
+
+    return () => clearInterval(ticker);
+  }, []);
+
+  // Main automatic polling effect
   useEffect(() => {
     // Initial fetch
     fetchData(false);
@@ -176,7 +225,7 @@ export function useTelemetry(deviceId: string = "thermoguard-01") {
       if (document.hidden) {
         stopPolling();
       } else {
-        // Immediately fetch fresh data when user tabs back, then resume polling
+        // Immediate sync upon returning to tab
         fetchData(true);
         startPolling();
       }
