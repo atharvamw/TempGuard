@@ -84,12 +84,78 @@ export function getHistoryCutoffDate(range: HistoryRange): Date {
 }
 
 /**
+ * Downsamples time-series readings to a target number of points if readings exceed target count.
+ * Preserves true timestamps and calculates bucketed average temperatures.
+ */
+export function downsampleReadings(
+  readings: SerializedTemperatureReading[],
+  targetPoints: number = 300
+): SerializedTemperatureReading[] {
+  if (readings.length <= targetPoints) {
+    return readings;
+  }
+
+  const sampled: SerializedTemperatureReading[] = [];
+  const bucketSize = readings.length / targetPoints;
+
+  for (let i = 0; i < targetPoints; i++) {
+    const startIndex = Math.floor(i * bucketSize);
+    const endIndex = Math.min(Math.floor((i + 1) * bucketSize), readings.length);
+
+    if (startIndex >= readings.length) break;
+
+    const bucket = readings.slice(startIndex, endIndex);
+    if (bucket.length === 0) continue;
+
+    let sumTemp = 0;
+    for (const item of bucket) {
+      sumTemp += item.temperatureC;
+    }
+    const avgTemp = Math.round((sumTemp / bucket.length) * 100) / 100;
+    const midItem = bucket[Math.floor(bucket.length / 2)];
+
+    sampled.push({
+      id: midItem.id,
+      deviceId: midItem.deviceId,
+      temperatureC: avgTemp,
+      receivedAt: midItem.receivedAt,
+      measuredAt: midItem.measuredAt,
+    });
+  }
+
+  return sampled;
+}
+
+/**
+ * Checks if a temperature reading violates the configured thresholds.
+ */
+export function checkThresholdViolation(
+  temperatureC: number | null | undefined,
+  settings: { minTemperatureC: number; maxTemperatureC: number } | null | undefined
+): "low" | "high" | null {
+  if (temperatureC === null || temperatureC === undefined || !settings) {
+    return null;
+  }
+
+  if (temperatureC < settings.minTemperatureC) {
+    return "low";
+  }
+
+  if (temperatureC > settings.maxTemperatureC) {
+    return "high";
+  }
+
+  return null;
+}
+
+/**
  * Retrieves chronologically sorted readings for a given time range.
  */
 export async function getHistoricalReadings(
   deviceId: string,
-  range: HistoryRange
-): Promise<SerializedTemperatureReading[]> {
+  range: HistoryRange,
+  maxPoints: number = 300
+): Promise<{ readings: SerializedTemperatureReading[]; stats: TemperatureStats }> {
   const collection = await getReadingsCollection();
   const cutoff = getHistoryCutoffDate(range);
 
@@ -101,17 +167,28 @@ export async function getHistoricalReadings(
       },
       { sort: { receivedAt: 1 } }
     )
-    .limit(1000); // Guard limit to prevent excessive payload size
+    .limit(10000); // Bounded query to safeguard serverless memory
 
   const docs = await cursor.toArray();
 
-  return docs.map((doc) => ({
+  const rawReadings: SerializedTemperatureReading[] = docs.map((doc) => ({
     id: doc._id?.toString(),
     deviceId: doc.deviceId,
     temperatureC: doc.temperatureC,
     receivedAt: doc.receivedAt.toISOString(),
     measuredAt: doc.measuredAt ? doc.measuredAt.toISOString() : undefined,
   }));
+
+  // Calculate statistics over the complete raw dataset
+  const stats = computeTemperatureStats(rawReadings);
+
+  // Downsample if raw count exceeds target resolution for charts
+  const downsampled = downsampleReadings(rawReadings, maxPoints);
+
+  return {
+    readings: downsampled,
+    stats,
+  };
 }
 
 /**

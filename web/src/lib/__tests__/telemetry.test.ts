@@ -3,6 +3,8 @@ import {
   computeTemperatureStats,
   calculateDeviceFreshness,
   getHistoryCutoffDate,
+  downsampleReadings,
+  checkThresholdViolation,
 } from "../telemetry";
 
 describe("computeTemperatureStats", () => {
@@ -80,3 +82,54 @@ describe("getHistoryCutoffDate", () => {
     expect(Math.abs(now - cutoff7d - 7 * 86400000)).toBeLessThan(100);
   });
 });
+
+describe("downsampleReadings", () => {
+  it("returns original array if length <= targetPoints", () => {
+    const readings = [
+      { id: "1", deviceId: "d1", temperatureC: 20, receivedAt: "2026-10-28T10:00:00Z" },
+      { id: "2", deviceId: "d1", temperatureC: 22, receivedAt: "2026-10-28T10:01:00Z" },
+    ];
+    expect(downsampleReadings(readings, 10)).toEqual(readings);
+  });
+
+  it("downsamples array to target size with accurate bucket averages", () => {
+    const readings = [];
+    for (let i = 0; i < 100; i++) {
+      readings.push({
+        id: `${i}`,
+        deviceId: "d1",
+        temperatureC: 20.0 + (i % 5),
+        receivedAt: new Date(1700000000000 + i * 10000).toISOString(),
+      });
+    }
+
+    const downsampled = downsampleReadings(readings, 10);
+    expect(downsampled.length).toBe(10);
+    expect(typeof downsampled[0].temperatureC).toBe("number");
+    expect(downsampled[0].receivedAt).toBeDefined();
+  });
+});
+
+describe("checkThresholdViolation", () => {
+  const settings = { minTemperatureC: 15, maxTemperatureC: 25 };
+
+  it("returns null when temperature is within range", () => {
+    expect(checkThresholdViolation(20, settings)).toBeNull();
+    expect(checkThresholdViolation(15, settings)).toBeNull();
+    expect(checkThresholdViolation(25, settings)).toBeNull();
+  });
+
+  it("returns low when temperature is below minimum", () => {
+    expect(checkThresholdViolation(14.9, settings)).toBe("low");
+  });
+
+  it("returns high when temperature is above maximum", () => {
+    expect(checkThresholdViolation(25.1, settings)).toBe("high");
+  });
+
+  it("returns null when temperature or settings are missing", () => {
+    expect(checkThresholdViolation(null, settings)).toBeNull();
+    expect(checkThresholdViolation(20, null)).toBeNull();
+  });
+});
+

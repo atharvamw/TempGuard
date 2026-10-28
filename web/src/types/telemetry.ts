@@ -66,3 +66,30 @@ export interface TemperatureStats {
   avg: number | null;
   count: number;
 }
+
+/**
+ * Data payload for GET /api/telemetry/latest
+ */
+export interface LatestReadingData {
+  reading: SerializedTemperatureReading | null;
+  ageSeconds: number | null;
+  freshnessStatus: DeviceFreshnessStatus;
+  settings?: {
+    minTemperatureC: number;
+    maxTemperatureC: number;
+  } | null;
+  thresholdViolation?: "low" | "high" | null;
+}
+
+/**
+ * Data payload for GET /api/telemetry/history
+ */
+export interface HistoryResponseData {
+  deviceId: string;
+  range: HistoryRange;
+  startTime: string;
+  endTime: string;
+  readings: SerializedTemperatureReading[];
+  stats: TemperatureStats;
+}
+
