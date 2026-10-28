@@ -6,7 +6,7 @@ settings:
 
 importers:
 
-  web:
+  .:
     dependencies:
       clsx:
         specifier: ^2.1.1
