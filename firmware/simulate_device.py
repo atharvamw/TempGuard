@@ -20,7 +20,7 @@ try:
     DEVICE_API_TOKEN = config.DEVICE_API_TOKEN
     INTERVAL = config.MEASUREMENT_INTERVAL_SEC
 except ImportError:
-    API_URL = "http://localhost:3000/api/telemetry"
+    API_URL = "https://tempguard.vercel.app/api/telemetry"
     DEVICE_ID = "thermoguard-01"
     DEVICE_API_TOKEN = "test-device-token-secret-12345"
     INTERVAL = 10
