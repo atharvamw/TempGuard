@@ -9,9 +9,12 @@ from api_client import ApiClient
 def main():
     print("Initializing ThermoGuard Telemetry Loop...")
     
-    # 1. Initialize Wi-Fi
-    if not connect_wifi(config.WIFI_SSID, config.WIFI_PASSWORD):
-        print("Initial Wi-Fi connection failed. Will retry in loop.")
+    # 1. Initialize Wi-Fi safely
+    try:
+        if not connect_wifi(config.WIFI_SSID, config.WIFI_PASSWORD):
+            print("Initial Wi-Fi connection failed. Will retry in main loop.")
+    except Exception as e:
+        print("Initial Wi-Fi connection exception:", e, "- Will retry in loop.")
 
     # 2. Initialize Sensor & API Client
     sensor = TemperatureSensor(config.ONE_WIRE_PIN)
