@@ -1,5 +1,13 @@
 import { MongoClient, Db, Collection } from "mongodb";
 import { TemperatureReadingDocument, DeviceSettingsDocument } from "@/types/telemetry";
+import dns from "node:dns";
+
+// Ensure reliable SRV DNS resolution across all networks and platforms
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch {
+  // Ignore in environments where setting DNS servers is restricted
+}
 
 const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/thermoguard";
 const dbName = process.env.MONGODB_DB_NAME || "thermoguard";
